@@ -1,0 +1,38 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Textile-Go - LLM Message Transformation Middleware",
+  "description": "A transparent message transformation middleware for LLM clients in Go that wraps the warp client with a powerful pipeline system while maintaining zero API changes.",
+  "folders": [
+    "docs/",
+    "examples/",
+    "internal/clone/",
+    "transformer/"
+  ],
+  "excludeFolders": [
+    "workbench/",
+    ".claude/",
+    ".devin/",
+    ".git/"
+  ],
+  "rules": [
+    "Textile-Go wraps warp.Client transparently - existing code needs no changes, just wrap the client with textile.New()",
+    "Always use deep cloning for message immutability - transformers work on copies, never modify original messages",
+    "Transformers implement a single Transform method that receives a TransformContext with Stage, Messages, and Metadata",
+    "Three transformation stages exist: StageRequest (before LLM), StageResponse (after LLM), StageStreamChunk (during streaming)",
+    "Default error strategy is fail-closed for data integrity - use WithErrorStrategy(ErrorStrategyFailOpen) only when errors can be safely ignored",
+    "Pipeline execution is sequential - transformers run in the order they were added to the pipeline",
+    "Context.Context must be the first parameter in all public APIs for proper cancellation and timeout support",
+    "Thread safety is guaranteed through mutex protection and immutable message passing via deep cloning",
+    "The internal/clone package uses reflection for deep cloning - this is intentional for complete immutability despite performance cost",
+    "Always run tests with -race flag to detect race conditions, especially when testing transformers",
+    "Transformers should be stateless when possible - if state is needed, protect with appropriate synchronization",
+    "Use table-driven tests following Go conventions - see existing test files for patterns",
+    "Stream transformation happens per-chunk in real-time - ensure transformers handle partial data correctly",
+    "TransformContext.Metadata is for passing data between transformers in the same pipeline execution",
+    "Client.WithTransformer() adds a single transformer, Client.WithPipeline() replaces the entire pipeline",
+    "Fail-closed strategy stops on first error and returns it, fail-open logs errors but continues processing",
+    "The embedded warp.Client design allows textile.Client to be a drop-in replacement maintaining the same API",
+    "Follow Google Go Style Guide for all code contributions - use gofmt and golint before committing",
+    "Examples in examples/ directory demonstrate real usage patterns - basic, streaming, and custom transformers"
+  ]
+}

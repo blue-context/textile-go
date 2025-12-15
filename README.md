@@ -1,5 +1,7 @@
 # Textile-Go
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/blue-context/textile-go)
+
 Transparent message transformation middleware for LLM clients in Go.
 
 Textile wraps the [warp](https://github.com/blue-context/warp) client with a powerful transformation pipeline system while maintaining zero API changes for consumers. This allows you to apply configurable transformations to messages before and after LLM calls transparently.

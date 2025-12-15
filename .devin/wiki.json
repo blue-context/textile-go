@@ -1,0 +1,216 @@
+{
+  "repo_notes": [
+    {
+      "content": "Textile-Go is a transparent message transformation middleware for LLM clients that wraps the warp client. It provides a powerful transformation pipeline system while maintaining zero API changes for consumers. The architecture prioritizes immutability through deep cloning, thread-safety via mutex protection, and composability through functional interfaces. Key design patterns include: (1) Struct-based client with embedded warp.Client for clean separation, (2) Three-stage transformation pipeline (Request, Response, StreamChunk), (3) Fail-closed error strategy by default for data integrity, (4) Context-first API design for proper cancellation and timeout handling. The codebase follows Google Go style guidelines with table-driven tests and comprehensive error handling.",
+      "author": "Architecture Team"
+    },
+    {
+      "content": "CRITICAL IMPLEMENTATION NOTE: The internal/clone package implements deep cloning using reflection, which is the most complex and potentially 'scary' part of the codebase. This was chosen after careful consideration (see ADR-003) to ensure complete immutability of messages during transformation. The implementation handles complex nested structures, slices, maps, and interfaces. While reflection has performance implications, it guarantees data safety in concurrent environments. Any modifications to the cloning logic must be thoroughly tested with race detection enabled.",
+      "author": "Core Engineering"
+    }
+  ],
+  "pages": [
+    {
+      "title": "Getting Started",
+      "purpose": "Quick introduction to textile-go for new users. Covers what textile-go is, why you'd use it, basic installation, and a simple hello-world example that demonstrates the core value proposition - transparent message transformation without changing the warp client API. Includes comparison with direct warp usage to highlight the zero-API-change benefit.",
+      "page_notes": [
+        {
+          "content": "Focus on the simplicity of adoption - textile-go is a drop-in wrapper that doesn't require learning a new API. Show side-by-side code comparison of warp vs textile-wrapped warp to emphasize transparency.",
+          "author": "Documentation Team"
+        }
+      ]
+    },
+    {
+      "title": "Core Concepts",
+      "purpose": "Explains the fundamental concepts needed to understand textile-go: Transformers (functional units that modify messages), Pipeline (ordered chain of transformers), Transform Stages (Request, Response, StreamChunk), Transform Context (the mutable container passed through pipeline), and Immutability (how deep cloning ensures safety). Each concept includes visual diagrams and code examples.",
+      "page_notes": [
+        {
+          "content": "Use sequence diagrams to show message flow through the pipeline. Emphasize that transformers receive copies, not originals, ensuring thread-safety.",
+          "author": "Architecture Team"
+        }
+      ]
+    },
+    {
+      "title": "Transformation Pipeline",
+      "purpose": "Deep dive into how the transformation pipeline works. Covers the three stages in detail (StageRequest for pre-processing, StageResponse for post-processing, StageStreamChunk for streaming), pipeline execution order, how transformers are chained, and the TransformContext structure. Includes examples of multi-stage transformers and explains when to use each stage.",
+      "parent": "Core Concepts",
+      "page_notes": [
+        {
+          "content": "Include flowchart showing decision points in pipeline execution, especially error handling branches based on error strategy (fail-open vs fail-closed).",
+          "author": "Engineering Team"
+        }
+      ]
+    },
+    {
+      "title": "Writing Transformers",
+      "purpose": "Comprehensive guide to creating custom transformers. Covers the Transformer interface, TransformContext manipulation, accessing and modifying messages, handling different stages, error handling within transformers, and best practices for transformer design. Includes multiple real-world examples: logging, filtering, enrichment, validation, and rate limiting transformers.",
+      "parent": "Core Concepts",
+      "page_notes": [
+        {
+          "content": "Emphasize that transformers should be stateless when possible. If state is needed, ensure thread-safety with proper synchronization.",
+          "author": "Core Engineering"
+        }
+      ]
+    },
+    {
+      "title": "Error Handling Strategies",
+      "purpose": "Explains the two error handling strategies in textile-go: Fail-Open (continue on errors, log and proceed) and Fail-Closed (stop on first error, ensure data integrity). Covers when to use each strategy, how to configure them, error propagation through the pipeline, and recovery patterns. Includes decision matrix for choosing the right strategy.",
+      "parent": "Core Concepts",
+      "page_notes": [
+        {
+          "content": "Default is fail-closed for safety. This is a deliberate architectural choice prioritizing data integrity over availability.",
+          "author": "Architecture Team"
+        }
+      ]
+    },
+    {
+      "title": "Basic Usage Examples",
+      "purpose": "Collection of simple, focused examples showing common use cases: adding system prompts, filtering sensitive data, logging requests/responses, adding metadata to messages, and simple content transformation. Each example is self-contained and runnable, demonstrating one specific feature.",
+      "parent": "Getting Started",
+      "page_notes": [
+        {
+          "content": "Keep examples under 50 lines of code. Focus on clarity over completeness. Link to more complex examples for advanced users.",
+          "author": "Developer Experience"
+        }
+      ]
+    },
+    {
+      "title": "Streaming Support",
+      "purpose": "Detailed documentation of streaming response handling. Covers how textile-go intercepts and transforms streaming chunks, the StreamWriter interface, chunk transformation in real-time, error handling during streaming, and backpressure considerations. Includes examples of streaming transformers for token counting, content filtering, and progressive enhancement.",
+      "parent": "Core Concepts",
+      "page_notes": [
+        {
+          "content": "Streaming is complex due to concurrent chunk processing. Show proper goroutine management and context cancellation patterns.",
+          "author": "Streaming Team"
+        }
+      ]
+    },
+    {
+      "title": "Advanced Patterns",
+      "purpose": "Complex usage patterns for production systems: Multi-stage pipeline composition, conditional transformer execution, dynamic pipeline modification, transformer middleware patterns, context-aware transformations, rate limiting and throttling, circuit breaker patterns, and observability integration. Each pattern includes architectural diagrams and production-ready code.",
+      "page_notes": [
+        {
+          "content": "These patterns emerged from real production usage. Include performance considerations and scaling notes for each pattern.",
+          "author": "Platform Team"
+        }
+      ]
+    },
+    {
+      "title": "Pipeline Composition",
+      "purpose": "Advanced guide to building complex pipelines. Covers pipeline builder pattern, combining multiple transformers, ordering considerations for performance, conditional branches in pipelines, pipeline introspection and debugging, and dynamic pipeline reconfiguration. Includes examples of domain-specific pipelines for different use cases.",
+      "parent": "Advanced Patterns",
+      "page_notes": [
+        {
+          "content": "Order matters! Show how transformer ordering affects both correctness and performance. Include benchmarks for common patterns.",
+          "author": "Performance Team"
+        }
+      ]
+    },
+    {
+      "title": "Testing Transformers",
+      "purpose": "Complete guide to testing transformers and pipelines. Covers unit testing individual transformers, integration testing with pipelines, mocking the warp client, table-driven test patterns, testing error scenarios, race condition detection, benchmark testing, and fuzzing transformers. Includes test utilities and helper functions.",
+      "parent": "Advanced Patterns",
+      "page_notes": [
+        {
+          "content": "Always run tests with -race flag. The deep cloning logic is particularly important to test under concurrent load.",
+          "author": "QA Team"
+        }
+      ]
+    },
+    {
+      "title": "Performance Optimization",
+      "purpose": "Performance tuning guide for textile-go. Covers understanding the performance impact of deep cloning, optimizing transformer execution, pipeline parallelization strategies, memory management considerations, profiling and benchmarking, and common performance pitfalls. Includes benchmarks comparing different approaches.",
+      "parent": "Advanced Patterns",
+      "page_notes": [
+        {
+          "content": "Deep cloning has measurable overhead. Show when it's worth considering alternatives like copy-on-write patterns for specific use cases.",
+          "author": "Performance Team"
+        }
+      ]
+    },
+    {
+      "title": "Architecture Deep Dive",
+      "purpose": "Technical deep dive into textile-go's architecture. Covers the struct-based client design, embedded warp.Client pattern, mutex-based synchronization, deep cloning implementation details, reflection usage and safety, context propagation patterns, and design trade-offs. References all relevant ADRs for historical context.",
+      "page_notes": [
+        {
+          "content": "This is for developers who want to contribute to textile-go or understand the internals. Link to ADRs for decision rationale.",
+          "author": "Architecture Team"
+        }
+      ]
+    },
+    {
+      "title": "Deep Cloning Implementation",
+      "purpose": "Detailed explanation of the internal/clone package - the most complex part of textile-go. Covers why deep cloning is necessary for immutability, how the reflection-based implementation works, handling of different Go types (structs, slices, maps, interfaces), performance characteristics and trade-offs, and safety guarantees. Includes visual diagrams of the cloning process.",
+      "parent": "Architecture Deep Dive",
+      "page_notes": [
+        {
+          "content": "This is the 'scary' part that developers worry about. Be transparent about the complexity while explaining why it's necessary and safe.",
+          "author": "Core Engineering"
+        }
+      ]
+    },
+    {
+      "title": "Thread Safety",
+      "purpose": "Comprehensive documentation of thread safety guarantees in textile-go. Covers concurrent access patterns, mutex protection strategies, immutability through deep cloning, safe pipeline modification, goroutine safety in streaming, and race condition prevention. Includes examples of concurrent usage and anti-patterns to avoid.",
+      "parent": "Architecture Deep Dive",
+      "page_notes": [
+        {
+          "content": "Thread safety is a core guarantee. Show how the architecture ensures safety even with multiple goroutines accessing the same client.",
+          "author": "Concurrency Team"
+        }
+      ]
+    },
+    {
+      "title": "Integration Guide",
+      "purpose": "Guide for integrating textile-go into existing systems. Covers migration from raw warp client, gradual adoption strategies, integration with popular frameworks (gin, echo, chi), microservice patterns, observability integration (OpenTelemetry, Prometheus), and production deployment considerations. Includes case studies and migration scripts.",
+      "page_notes": [
+        {
+          "content": "Focus on incremental adoption - teams don't need to transform everything at once. Show how to gradually add transformers.",
+          "author": "Platform Team"
+        }
+      ]
+    },
+    {
+      "title": "Troubleshooting",
+      "purpose": "Common issues and solutions when using textile-go. Covers debugging transformer issues, understanding error messages, performance troubleshooting, memory leak detection, goroutine leak prevention, streaming issues, and context cancellation problems. Each issue includes symptoms, root causes, and solutions with code examples.",
+      "page_notes": [
+        {
+          "content": "Based on real support tickets and GitHub issues. Include debugging techniques and tools specific to transformer pipelines.",
+          "author": "Support Team"
+        }
+      ]
+    },
+    {
+      "title": "API Reference",
+      "purpose": "Complete API documentation for all public types and functions. Covers Client methods and options, Transformer interface and implementations, Pipeline creation and management, TransformContext structure, Error types and strategies, Configuration options, and utility functions. Auto-generated from source with additional examples.",
+      "page_notes": [
+        {
+          "content": "Keep in sync with godoc. Include practical examples for each API method showing typical usage patterns.",
+          "author": "Documentation Team"
+        }
+      ]
+    },
+    {
+      "title": "Migration from Warp",
+      "purpose": "Step-by-step guide for migrating from direct warp usage to textile-go. Covers identifying transformation needs, wrapping existing warp client, adding first transformer, gradual feature adoption, testing during migration, and rollback strategies. Includes comparison of before/after code and common migration patterns.",
+      "parent": "Integration Guide",
+      "page_notes": [
+        {
+          "content": "Emphasize that textile-go is a wrapper, not a replacement. Existing warp code continues to work unchanged.",
+          "author": "Migration Team"
+        }
+      ]
+    },
+    {
+      "title": "Production Best Practices",
+      "purpose": "Production deployment guidelines for textile-go. Covers configuration management, error handling strategies, monitoring and alerting, performance tuning, resource management, circuit breaker integration, graceful shutdown patterns, and high availability considerations. Based on real production deployments.",
+      "parent": "Integration Guide",
+      "page_notes": [
+        {
+          "content": "Include production checklist and readiness criteria. Cover both Kubernetes and traditional deployments.",
+          "author": "SRE Team"
+        }
+      ]
+    }
+  ]
+}
